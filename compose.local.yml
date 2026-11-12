@@ -1,0 +1,5 @@
+# Explicit local overlay for the Lab 13 -f lesson.
+services:
+  app:
+    ports:
+      - "127.0.0.1:8085:3000"

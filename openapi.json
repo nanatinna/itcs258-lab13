@@ -1,0 +1,729 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ITCS258 Gacha Workshop API",
+    "version": "1.0.0",
+    "description": "Virtual classroom credits only. No real payments or prizes. This demo has no authentication: student_id is a teaching identifier, not authorization. Limit public demos to the class. History returns the latest 50 transactions and draws. Legendary chance is 2% per independent draw; each of five SSR results has 0.4% overall chance. No pity counter."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8085",
+      "description": "Direct local Compose app; edit for your deployment"
+    },
+    {
+      "url": "http://localhost/backend",
+      "description": "Example local NPM prefix; edit hostname/port for your deployment"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Health"
+    },
+    {
+      "name": "Rules"
+    },
+    {
+      "name": "Wallet"
+    },
+    {
+      "name": "Operations"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Check API and PostgreSQL with SELECT 1",
+        "responses": {
+          "200": {
+            "description": "API can query the database",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Database health query failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog": {
+      "get": {
+        "tags": [
+          "Rules"
+        ],
+        "summary": "Read exchange/draw rules and possible results",
+        "responses": {
+          "200": {
+            "description": "Rules, five legendary results and five common results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "rules": {
+                      "type": "object"
+                    },
+                    "legendary": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "common": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "note": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "rules": {
+                    "coinsPerGem": 100,
+                    "gemsPerDraw": 10,
+                    "legendaryPercent": 2,
+                    "maxRecharge": 100000,
+                    "maxBalance": 1000000
+                  },
+                  "legendary": [
+                    {
+                      "id": "aurora-dragon",
+                      "name": "Aurora Dragon"
+                    },
+                    {
+                      "id": "chrono-phoenix",
+                      "name": "Chrono Phoenix"
+                    },
+                    {
+                      "id": "celestial-tiger",
+                      "name": "Celestial Tiger"
+                    },
+                    {
+                      "id": "nebula-knight",
+                      "name": "Nebula Knight"
+                    },
+                    {
+                      "id": "ocean-empress",
+                      "name": "Ocean Empress"
+                    }
+                  ],
+                  "common": [
+                    {
+                      "id": "forest-slime",
+                      "name": "Forest Slime"
+                    },
+                    {
+                      "id": "copper-golem",
+                      "name": "Copper Golem"
+                    },
+                    {
+                      "id": "river-sprite",
+                      "name": "River Sprite"
+                    },
+                    {
+                      "id": "wind-fox",
+                      "name": "Wind Fox"
+                    },
+                    {
+                      "id": "stone-knight",
+                      "name": "Stone Knight"
+                    }
+                  ],
+                  "note": "2% SSR per independent draw; no guaranteed SSR after 50 draws."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/accounts/{studentId}": {
+      "get": {
+        "tags": [
+          "Wallet"
+        ],
+        "summary": "Read wallet; initialize an empty wallet if absent",
+        "description": "Demo convenience: this GET creates the missing wallet. This is not an authenticated account-registration design.",
+        "parameters": [
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,30}$",
+              "example": "6688123"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Wallet (new wallets start at zero)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "wallet": {
+                      "$ref": "#/components/schemas/Wallet"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid student_id, coins or JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/accounts/{studentId}/history": {
+      "get": {
+        "tags": [
+          "Wallet"
+        ],
+        "summary": "Read the most recent 50 transactions and draws",
+        "parameters": [
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,30}$",
+              "example": "6688123"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "History arrays, newest IDs first; empty arrays are possible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "transactions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Transaction"
+                      }
+                    },
+                    "draws": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Draw"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid student_id, coins or JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/recharge": {
+      "post": {
+        "tags": [
+          "Operations"
+        ],
+        "summary": "Add virtual coins (integer 1–100000)",
+        "description": "The wallet update and ledger entry are one transaction. Concurrent writes to the same wallet are serialized. The draw response additionally includes draw. Repeating a successful request creates another operation; no idempotency key is provided.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RechargeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Wallet and transaction committed; draw also includes its saved result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid student_id, coins or JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Insufficient currency or balance would exceed 1000000; no operation committed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON request exceeds 8 KB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/exchange": {
+      "post": {
+        "tags": [
+          "Operations"
+        ],
+        "summary": "Spend coins in multiples of 100; receive one gem per 100 coins",
+        "description": "The wallet update and ledger entry are one transaction. Concurrent writes to the same wallet are serialized. The draw response additionally includes draw. Repeating a successful request creates another operation; no idempotency key is provided.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExchangeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Wallet and transaction committed; draw also includes its saved result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid student_id, coins or JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Insufficient currency or balance would exceed 1000000; no operation committed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON request exceeds 8 KB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/draw": {
+      "post": {
+        "tags": [
+          "Operations"
+        ],
+        "summary": "Spend 10 gems and save one random result",
+        "description": "The wallet update and ledger entry are one transaction. Concurrent writes to the same wallet are serialized. The draw response additionally includes draw. Repeating a successful request creates another operation; no idempotency key is provided.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DrawInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Wallet and transaction committed; draw also includes its saved result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid student_id, coins or JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Insufficient currency or balance would exceed 1000000; no operation committed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON request exceeds 8 KB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "wallet": {
+            "$ref": "#/components/schemas/Wallet"
+          }
+        }
+      },
+      "Wallet": {
+        "type": "object",
+        "required": [
+          "student_id",
+          "coins",
+          "gems",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "student_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,30}$",
+            "example": "6688123"
+          },
+          "coins": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "gems": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-11-02T07:00:00.000Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-11-02T07:00:00.000Z"
+          }
+        }
+      },
+      "Transaction": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1",
+            "description": "BIGSERIAL IDs are returned as JSON strings by node-postgres."
+          },
+          "student_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,30}$",
+            "example": "6688123"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "recharge",
+              "exchange",
+              "draw"
+            ]
+          },
+          "coin_delta": {
+            "type": "integer"
+          },
+          "gem_delta": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-11-02T07:00:00.000Z"
+          }
+        }
+      },
+      "Draw": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1",
+            "description": "BIGSERIAL IDs are returned as JSON strings by node-postgres."
+          },
+          "student_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,30}$",
+            "example": "6688123"
+          },
+          "result_id": {
+            "type": "string",
+            "example": "aurora-dragon"
+          },
+          "result_name": {
+            "type": "string",
+            "example": "Aurora Dragon"
+          },
+          "rarity": {
+            "type": "string",
+            "enum": [
+              "SSR",
+              "COMMON"
+            ]
+          },
+          "transaction_id": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "example": "1",
+            "description": "BIGSERIAL IDs are returned as JSON strings by node-postgres."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-11-02T07:00:00.000Z"
+          }
+        }
+      },
+      "Operation": {
+        "type": "object",
+        "required": [
+          "wallet",
+          "transaction"
+        ],
+        "properties": {
+          "wallet": {
+            "$ref": "#/components/schemas/Wallet"
+          },
+          "transaction": {
+            "$ref": "#/components/schemas/Transaction"
+          },
+          "draw": {
+            "$ref": "#/components/schemas/Draw"
+          }
+        }
+      },
+      "RechargeInput": {
+        "type": "object",
+        "required": [
+          "student_id",
+          "coins"
+        ],
+        "properties": {
+          "student_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,30}$",
+            "example": "6688123"
+          },
+          "coins": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000,
+            "example": 1000
+          }
+        }
+      },
+      "ExchangeInput": {
+        "type": "object",
+        "required": [
+          "student_id",
+          "coins"
+        ],
+        "properties": {
+          "student_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,30}$",
+            "example": "6688123"
+          },
+          "coins": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 100000,
+            "multipleOf": 100,
+            "example": 1000
+          }
+        }
+      },
+      "DrawInput": {
+        "type": "object",
+        "required": [
+          "student_id"
+        ],
+        "properties": {
+          "student_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,30}$",
+            "example": "6688123"
+          }
+        }
+      },
+      "Health": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "error"
+            ]
+          },
+          "database": {
+            "type": "string",
+            "enum": [
+              "connected",
+              "unavailable"
+            ]
+          },
+          "app": {
+            "type": "string",
+            "enum": [
+              "gacha"
+            ]
+          },
+          "version": {
+            "type": "string",
+            "description": "Short commit SHA of the running build, or dev"
+          }
+        }
+      }
+    },
+    "securitySchemes": {}
+  }
+}

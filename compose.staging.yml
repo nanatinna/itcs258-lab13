@@ -1,0 +1,8 @@
+# Run this instead of the local environment, not alongside it for the core lab.
+services:
+  app:
+    ports:
+      - "127.0.0.1:8086:3000"
+    restart: unless-stopped
+  db:
+    restart: unless-stopped

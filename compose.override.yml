@@ -1,0 +1,5 @@
+# Automatically loaded with compose.yml for the Lab 12 local walkthrough.
+services:
+  app:
+    ports:
+      - "127.0.0.1:8085:3000"

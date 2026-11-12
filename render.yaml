@@ -1,0 +1,32 @@
+# Optional Render Blueprint (infrastructure as code) for the gacha API + PostgreSQL.
+# The dashboard path in Lab 14 · CI/CD (platform deploy) (New > Postgres, then New > Web Service) is the main lesson;
+# use this file only after you understand each field.
+#
+# Repository layout:
+#   - this folder is your repository root  -> keep as is (Blueprint Path: render.yaml)
+#   - course monorepo layout               -> Blueprint Path: workshop/gacha/render.yaml
+#                                             and uncomment rootDir below
+services:
+  - type: web
+    name: gacha-api
+    runtime: docker              # builds ./Dockerfile; Render sets PORT (default 10000), app reads it
+    # rootDir: workshop/gacha
+    plan: free                   # spins down after 15 idle minutes; first request then takes ~1 minute
+    region: singapore            # app and database must share a region for the internal URL
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass   # deploy only after the GitHub Actions checks pass (dashboard: "After CI Checks Pass")
+    envVars:
+      - key: DATABASE_URL        # internal (private network) URL of the database below
+        fromDatabase:
+          name: gacha-db
+          property: connectionString
+      - key: CORS_ORIGINS        # e.g. https://your-tester.vercel.app (asked once at creation)
+        sync: false
+
+databases:
+  - name: gacha-db
+    plan: free                   # free Render Postgres expires 30 days after creation
+    region: singapore
+    databaseName: gacha
+    user: gacha
+    postgresMajorVersion: "18"   # matches the local postgres:18 image

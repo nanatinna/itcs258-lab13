@@ -1,0 +1,15 @@
+node_modules
+.env
+.env.*
+!.env.example
+!.env.local.example
+!.env.staging.example
+!.env.production.example
+.git
+test
+backups
+*.log
+README.md
+docs
+README.en.md
+.github

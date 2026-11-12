@@ -1,0 +1,17 @@
+# CORS experiment (Lab 13): serve the visual tester from a SECOND origin.
+# Add this file after the base and ONE environment overlay, for example:
+#   docker compose --env-file .env -f compose.yml -f compose.local.yml -f compose.cors.yml up -d --build --wait
+# Page origin http://localhost:5500 is not the API origin http://localhost:8085, so the
+# browser shows the API's answers to this page only when CORS_ORIGINS lists that page origin.
+services:
+  tester:
+    image: node:24-bookworm-slim
+    user: node
+    working_dir: /site
+    command: ["node", "serve.js", "5500"]
+    environment:
+      TESTER_HOST: 0.0.0.0
+    volumes:
+      - ./visual-tester:/site:ro
+    ports:
+      - "127.0.0.1:5500:5500"

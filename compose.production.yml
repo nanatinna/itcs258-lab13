@@ -1,0 +1,6 @@
+# The base has no ports. Only the reverse proxy publishes the API entry point.
+services:
+  app:
+    restart: unless-stopped
+  db:
+    restart: unless-stopped
