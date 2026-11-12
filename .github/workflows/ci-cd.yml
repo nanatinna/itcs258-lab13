@@ -1,0 +1,74 @@
+# Lab 14 · CI/CD for the gacha workshop.
+# Put the gacha-workshop folder (the one with compose.yml) at the ROOT of your GitHub repository.
+# Every push and pull request runs steps 01 and 02. A push to main also runs step 03.
+# Step 04 needs no code here: Render/Railway deploy only after these checks pass.
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  # 01 · CI: unit/HTTP tests and Compose checks (about 1 minute)
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Compose files are valid; production publishes no app/db port
+        run: |
+          cp .env.example .env
+          docker compose -f compose.yml -f compose.local.yml config --quiet
+          node test/check-compose.js
+
+  # 02 · Integration: start the real app + PostgreSQL, then run the smoke test
+  integration:
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      CORS_ORIGINS: http://localhost:5500   # lets the smoke test check the CORS preflight
+    steps:
+      - uses: actions/checkout@v7
+      - name: Start app + PostgreSQL (base + local overlay)
+        run: |
+          cp .env.example .env
+          docker compose -f compose.yml -f compose.local.yml up -d --build --wait
+      - name: Smoke test
+        run: node test/smoke.js http://localhost:8085
+        env:
+          SMOKE_ORIGIN: http://localhost:5500
+      - name: Show logs if something failed
+        if: failure()
+        run: docker compose -f compose.yml -f compose.local.yml logs app db
+      - name: Stop and delete the test stack
+        if: always()
+        run: docker compose -f compose.yml -f compose.local.yml down -v
+
+  # 03 · Publish the tested image to GitHub Container Registry (main branch only)
+  publish:
+    needs: integration
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Log in to ghcr.io with the built-in token (no secret to create)
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Build and push ghcr.io/<owner>/<repo>:<short sha> and :main
+        run: |
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}"
+          SHORT="${GITHUB_SHA::7}"
+          docker build --build-arg GIT_SHA="$GITHUB_SHA" -t "$IMAGE:$SHORT" -t "$IMAGE:main" .
+          docker push --all-tags "$IMAGE"
+          echo "Pushed $IMAGE:$SHORT" >> "$GITHUB_STEP_SUMMARY"
