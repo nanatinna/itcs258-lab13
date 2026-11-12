@@ -1,0 +1,179 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gacha API · API specification</title><style>:root{color-scheme:light;--paper:#f6f8f4;--ink:#192e35;--muted:#47635f;--line:#a9bcb0;--accent:#d9ef91}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.65 system-ui,"Noto Sans Thai",sans-serif}header{display:flex;gap:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:.75rem 1.5rem;border-bottom:1px solid var(--line)}a{color:#245b53;text-underline-offset:.2em}button,input{font:inherit}button{padding:.4rem .8rem;min-height:44px;border:1px solid #57756a;border-radius:5px;background:#edf2e7;color:var(--ink);cursor:pointer}button:disabled{opacity:.55;cursor:default}button[aria-pressed=true],.primary{background:var(--ink);color:white}button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:3px solid #266dcd;outline-offset:3px}main{max-width:1050px;margin:2rem auto;padding:0 1.25rem}h1{font-size:2rem;line-height:1.2}h2{font-size:1.4rem;line-height:1.35}h3{font-size:1.1rem;margin:.2rem 0}.controls,.actions{display:flex;gap:.45rem;align-items:center;flex-wrap:wrap}.controls{font-size:.75rem}fieldset{border:0;padding:0;margin:1rem 0}legend{font-weight:650;margin-bottom:1rem}.option{display:flex;gap:.65rem;padding:.75rem;border:1px solid var(--line);border-radius:6px;margin:.6rem 0;background:white;overflow-wrap:anywhere}.option:has(input:checked){border:2px solid #286455;background:#e8efdf}.option input{width:1.1rem;height:1.1rem;flex-shrink:0;margin-top:.3rem}.feedback{padding:1rem;border-left:5px solid #35765a;background:#e8efdf;margin:1rem 0}.feedback.incorrect{border-color:#8b442c;background:#fff0e4}#counter,#hint,#intro,footer{color:var(--muted)}#review-list{display:grid;gap:.5rem}#review-list button{text-align:left}footer{border-top:1px solid var(--line);padding:1rem;font-size:.75rem}#font-value{min-width:3em}.skip{position:absolute;left:-10000px}.skip:focus{position:static}[hidden]{display:none!important}@media(max-width:600px){header{padding:.7rem}main{margin:1rem auto}h1{font-size:1.6rem}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}@media print{header,.actions,.controls{display:none}main{margin:0}}
+html[lang=en] .th,html[lang=th] .en{display:none}section{padding:1rem 0;border-top:1px solid var(--line)}pre{overflow:auto;background:#182f36;color:#eff6e9;padding:1rem;font:.8rem/1.65 ui-monospace,monospace}table{border-collapse:collapse;width:100%}td,th{padding:.5rem;text-align:left;border:1px solid var(--line)}.table-scroll{overflow:auto}h2{overflow-wrap:anywhere}</style></head><body><header><strong>ITCS258 · Gacha API</strong><div class="controls"><button id="en" type="button">EN</button><button id="th" type="button">ไทย</button><button id="minus" type="button" aria-label="Decrease text size">−−</button><button id="plus" type="button" aria-label="Increase text size">++</button><span id="size">125%</span></div></header><main><h1><span class="en">Gacha API specification</span><span class="th">เอกสาร API กาชา</span></h1><p><span class="en">Virtual classroom credits only. No real payments. These endpoints belong to the running workshop app, not the teaching website.</span><span class="th">ใช้เครดิตจำลองในชั้นเรียนเท่านั้น ไม่มีการชำระเงินจริง Endpoint เหล่านี้เป็นของแอปทดลองที่รันอยู่ ไม่ใช่เว็บไซต์บทเรียน</span></p><p><a id="openapi" href="openapi.json" download>↓ OpenAPI 3.0 JSON</a> · <a id="tester" href="test"><span class="en">Open interactive /test client</span><span class="th">เปิด client ทดสอบ /test</span></a></p><p><span class="en">Import the JSON into Postman or another OpenAPI client, then set its server/base URL to your running app. Example servers are localhost:8085 and localhost/backend; replace them for your VM address or, in Lab 14, your platform domain.</span><span class="th">Import JSON เข้า Postman หรือ client ที่รองรับ OpenAPI แล้วตั้ง server/base URL เป็นแอปของตน ตัวอย่างคือ localhost:8085 และ localhost/backend ต้องแก้ให้ตรงกับ IP ของ VM หรือ domain ของแพลตฟอร์มใน Lab 14</span></p><h2><span class="en">Start with one saved draw</span><span class="th">เริ่มด้วยผลสุ่มที่บันทึกหนึ่งครั้ง</span></h2><p><span class="en">Health → wallet → recharge 1000 coins → exchange 1000 coins → draw once → history. Record the draw ID, result and created_at. During persistence checks, read history only.</span><span class="th">Health → wallet → เติม 1000 coin → แลก 1000 coin → สุ่มครั้งเดียว → history บันทึก ID ผลสุ่มและ created_at เมื่อทดสอบ persistence ให้อ่าน history เท่านั้น</span></p><p><span class="en">student_id: 1–30 English letters (A–Z/a–z), digits, underscores or hyphens. Recharge: integer 1–100000 coins. Exchange: 100–100000 coins in multiples of 100. Wallet limit: 1000000 per currency.</span><span class="th">student_id: ตัวอักษรอังกฤษ A–Z/a–z ตัวเลข ขีดล่างหรือขีดกลาง 1–30 ตัว เติม coin เป็นจำนวนเต็ม 1–100000 แลก coin 100–100000 เป็นเท่าของ 100 จำกัดยอดแต่ละสกุลไม่เกิน 1000000</span></p><p><span class="en">Each independent draw has a 2% SSR chance. The five legendary results are equally likely within SSR: each has 0.4% overall probability. A small batch does not guarantee an SSR.</span><span class="th">แต่ละ draw มีโอกาส SSR 2% อย่างอิสระ ผล legendary ทั้งห้ามีโอกาสเท่ากันภายใน SSR จึงมีโอกาสรวมตัวละ 0.4% การสุ่มกลุ่มเล็กไม่ได้รับประกัน SSR</span></p><pre tabindex="0">[
+  {
+    &quot;id&quot;: &quot;aurora-dragon&quot;,
+    &quot;name&quot;: &quot;Aurora Dragon&quot;
+  },
+  {
+    &quot;id&quot;: &quot;chrono-phoenix&quot;,
+    &quot;name&quot;: &quot;Chrono Phoenix&quot;
+  },
+  {
+    &quot;id&quot;: &quot;celestial-tiger&quot;,
+    &quot;name&quot;: &quot;Celestial Tiger&quot;
+  },
+  {
+    &quot;id&quot;: &quot;nebula-knight&quot;,
+    &quot;name&quot;: &quot;Nebula Knight&quot;
+  },
+  {
+    &quot;id&quot;: &quot;ocean-empress&quot;,
+    &quot;name&quot;: &quot;Ocean Empress&quot;
+  }
+]</pre><h2><span class="en">Proxy mapping</span><span class="th">การ map ผ่าน proxy</span></h2><pre tabindex="0">Direct:  http://localhost:8085/test
+NPM:     http://localhost/backend/test → Express /test
+API:     /backend/api/draw → Express /api/draw
+Spec:    /backend/api-spec → Express /api-spec
+OpenAPI: /backend/openapi.json → Express /openapi.json</pre><p><span class="en">NPM and app share a Docker network. The upstream is app:3000, and /backend/ is stripped before forwarding. NPM localhost refers to NPM itself.</span><span class="th">NPM และ app ใช้เครือข่าย Docker ร่วมกัน Upstream คือ app:3000 และตัด /backend/ ก่อนส่งต่อ localhost ของ NPM หมายถึง NPM เอง</span></p><section><h2>GET /health</h2><p><span class="en">API and DB health</span><span class="th">ตรวจแอปและฐานข้อมูล</span></p><h3><span class="en">Example response</span><span class="th">ตัวอย่างคำตอบ</span> · HTTP 200</h3><pre tabindex="0">{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;database&quot;: &quot;connected&quot;,
+  &quot;app&quot;: &quot;gacha&quot;,
+  &quot;version&quot;: &quot;a1b2c3d&quot;
+}</pre></section><section><h2>GET /api/catalog</h2><p><span class="en">Rules and result pool</span><span class="th">กติกาและชุดผลสุ่ม</span></p><h3><span class="en">Example response</span><span class="th">ตัวอย่างคำตอบ</span> · HTTP 200</h3><pre tabindex="0">{
+  &quot;rules&quot;: {
+    &quot;coinsPerGem&quot;: 100,
+    &quot;gemsPerDraw&quot;: 10,
+    &quot;legendaryPercent&quot;: 2,
+    &quot;maxRecharge&quot;: 100000,
+    &quot;maxBalance&quot;: 1000000
+  },
+  &quot;legendary&quot;: [
+    {
+      &quot;id&quot;: &quot;aurora-dragon&quot;,
+      &quot;name&quot;: &quot;Aurora Dragon&quot;
+    },
+    {
+      &quot;id&quot;: &quot;chrono-phoenix&quot;,
+      &quot;name&quot;: &quot;Chrono Phoenix&quot;
+    },
+    {
+      &quot;id&quot;: &quot;celestial-tiger&quot;,
+      &quot;name&quot;: &quot;Celestial Tiger&quot;
+    },
+    {
+      &quot;id&quot;: &quot;nebula-knight&quot;,
+      &quot;name&quot;: &quot;Nebula Knight&quot;
+    },
+    {
+      &quot;id&quot;: &quot;ocean-empress&quot;,
+      &quot;name&quot;: &quot;Ocean Empress&quot;
+    }
+  ],
+  &quot;common&quot;: [
+    {
+      &quot;id&quot;: &quot;forest-slime&quot;,
+      &quot;name&quot;: &quot;Forest Slime&quot;
+    },
+    {
+      &quot;id&quot;: &quot;copper-golem&quot;,
+      &quot;name&quot;: &quot;Copper Golem&quot;
+    },
+    {
+      &quot;id&quot;: &quot;river-sprite&quot;,
+      &quot;name&quot;: &quot;River Sprite&quot;
+    },
+    {
+      &quot;id&quot;: &quot;wind-fox&quot;,
+      &quot;name&quot;: &quot;Wind Fox&quot;
+    },
+    {
+      &quot;id&quot;: &quot;stone-knight&quot;,
+      &quot;name&quot;: &quot;Stone Knight&quot;
+    }
+  ]
+}</pre></section><section><h2>GET /api/accounts/{studentId}</h2><p><span class="en">Wallet (creates if missing)</span><span class="th">กระเป๋า (สร้างหากยังไม่มี)</span></p><h3><span class="en">Example response</span><span class="th">ตัวอย่างคำตอบ</span> · HTTP 200</h3><pre tabindex="0">{
+  &quot;wallet&quot;: {
+    &quot;student_id&quot;: &quot;6688123&quot;,
+    &quot;coins&quot;: 0,
+    &quot;gems&quot;: 0,
+    &quot;created_at&quot;: &quot;2026-11-02T07:00:00.000Z&quot;,
+    &quot;updated_at&quot;: &quot;2026-11-02T07:00:00.000Z&quot;
+  }
+}</pre></section><section><h2>GET /api/accounts/{studentId}/history</h2><p><span class="en">Saved transactions and draws</span><span class="th">ธุรกรรมและผลสุ่มเดิม</span></p><h3><span class="en">Example response</span><span class="th">ตัวอย่างคำตอบ</span> · HTTP 200</h3><pre tabindex="0">{
+  &quot;transactions&quot;: [
+    {
+      &quot;id&quot;: &quot;3&quot;,
+      &quot;student_id&quot;: &quot;6688123&quot;,
+      &quot;kind&quot;: &quot;draw&quot;,
+      &quot;coin_delta&quot;: 0,
+      &quot;gem_delta&quot;: -10,
+      &quot;created_at&quot;: &quot;2026-11-02T07:00:00.000Z&quot;
+    }
+  ],
+  &quot;draws&quot;: [
+    {
+      &quot;id&quot;: &quot;1&quot;,
+      &quot;student_id&quot;: &quot;6688123&quot;,
+      &quot;result_id&quot;: &quot;wind-fox&quot;,
+      &quot;result_name&quot;: &quot;Wind Fox&quot;,
+      &quot;rarity&quot;: &quot;COMMON&quot;,
+      &quot;transaction_id&quot;: &quot;3&quot;,
+      &quot;created_at&quot;: &quot;2026-11-02T07:00:00.000Z&quot;
+    }
+  ]
+}</pre></section><section><h2>POST /api/recharge</h2><p><span class="en">Recharge virtual coins</span><span class="th">เติม coin จำลอง</span></p><h3><span class="en">JSON request</span><span class="th">JSON ที่ส่ง</span></h3><pre tabindex="0">{
+  &quot;student_id&quot;: &quot;6688123&quot;,
+  &quot;coins&quot;: 1000
+}</pre><h3><span class="en">Example response</span><span class="th">ตัวอย่างคำตอบ</span> · HTTP 201</h3><pre tabindex="0">{
+  &quot;wallet&quot;: {
+    &quot;student_id&quot;: &quot;6688123&quot;,
+    &quot;coins&quot;: 1000,
+    &quot;gems&quot;: 0,
+    &quot;created_at&quot;: &quot;2026-11-02T07:00:00.000Z&quot;,
+    &quot;updated_at&quot;: &quot;2026-11-02T07:00:00.000Z&quot;
+  },
+  &quot;transaction&quot;: {
+    &quot;id&quot;: &quot;1&quot;,
+    &quot;student_id&quot;: &quot;6688123&quot;,
+    &quot;kind&quot;: &quot;recharge&quot;,
+    &quot;coin_delta&quot;: 1000,
+    &quot;gem_delta&quot;: 0,
+    &quot;created_at&quot;: &quot;2026-11-02T07:00:00.000Z&quot;
+  }
+}</pre></section><section><h2>POST /api/exchange</h2><p><span class="en">Trade coins for gems</span><span class="th">แลก coin เป็น gem</span></p><h3><span class="en">JSON request</span><span class="th">JSON ที่ส่ง</span></h3><pre tabindex="0">{
+  &quot;student_id&quot;: &quot;6688123&quot;,
+  &quot;coins&quot;: 1000
+}</pre><h3><span class="en">Example response</span><span class="th">ตัวอย่างคำตอบ</span> · HTTP 201</h3><pre tabindex="0">{
+  &quot;wallet&quot;: {
+    &quot;student_id&quot;: &quot;6688123&quot;,
+    &quot;coins&quot;: 0,
+    &quot;gems&quot;: 10,
+    &quot;created_at&quot;: &quot;2026-11-02T07:00:00.000Z&quot;,
+    &quot;updated_at&quot;: &quot;2026-11-02T07:00:00.000Z&quot;
+  },
+  &quot;transaction&quot;: {
+    &quot;id&quot;: &quot;2&quot;,
+    &quot;student_id&quot;: &quot;6688123&quot;,
+    &quot;kind&quot;: &quot;exchange&quot;,
+    &quot;coin_delta&quot;: -1000,
+    &quot;gem_delta&quot;: 10,
+    &quot;created_at&quot;: &quot;2026-11-02T07:00:00.000Z&quot;
+  }
+}</pre></section><section><h2>POST /api/draw</h2><p><span class="en">Draw once for 10 gems</span><span class="th">สุ่มหนึ่งครั้งด้วย 10 gem</span></p><h3><span class="en">JSON request</span><span class="th">JSON ที่ส่ง</span></h3><pre tabindex="0">{
+  &quot;student_id&quot;: &quot;6688123&quot;
+}</pre><h3><span class="en">Example response</span><span class="th">ตัวอย่างคำตอบ</span> · HTTP 201</h3><pre tabindex="0">{
+  &quot;wallet&quot;: {
+    &quot;student_id&quot;: &quot;6688123&quot;,
+    &quot;coins&quot;: 0,
+    &quot;gems&quot;: 0,
+    &quot;created_at&quot;: &quot;2026-11-02T07:00:00.000Z&quot;,
+    &quot;updated_at&quot;: &quot;2026-11-02T07:00:00.000Z&quot;
+  },
+  &quot;transaction&quot;: {
+    &quot;id&quot;: &quot;3&quot;,
+    &quot;student_id&quot;: &quot;6688123&quot;,
+    &quot;kind&quot;: &quot;draw&quot;,
+    &quot;coin_delta&quot;: 0,
+    &quot;gem_delta&quot;: -10,
+    &quot;created_at&quot;: &quot;2026-11-02T07:00:00.000Z&quot;
+  },
+  &quot;draw&quot;: {
+    &quot;id&quot;: &quot;1&quot;,
+    &quot;student_id&quot;: &quot;6688123&quot;,
+    &quot;result_id&quot;: &quot;wind-fox&quot;,
+    &quot;result_name&quot;: &quot;Wind Fox&quot;,
+    &quot;rarity&quot;: &quot;COMMON&quot;,
+    &quot;transaction_id&quot;: &quot;3&quot;,
+    &quot;created_at&quot;: &quot;2026-11-02T07:00:00.000Z&quot;
+  }
+}</pre></section><section><h2><span class="en">Status codes and side effects</span><span class="th">Status code และผลต่อข้อมูล</span></h2><div class="table-scroll"><table><tr><th>Status</th><th><span class="en">Meaning</span><span class="th">ความหมาย</span></th></tr><tr><td>200</td><td><span class="en">Successful read or health check; empty history does not prove persistence.</span><span class="th">อ่านหรือ health สำเร็จ แต่ประวัติว่างยังพิสูจน์ persistence ไม่ได้</span></td></tr><tr><td>201</td><td><span class="en">Wallet operation committed; draw also saves a result.</span><span class="th">บันทึกธุรกรรมกระเป๋าแล้ว draw จะบันทึกผลสุ่มด้วย</span></td></tr><tr><td>400</td><td><span class="en">Invalid ID, amount, exchange multiple or JSON.</span><span class="th">ID จำนวนเงิน จำนวนเท่าของการแลก หรือ JSON ไม่ถูกต้อง</span></td></tr><tr><td>409</td><td><span class="en">Insufficient funds or balance limit; no operation committed.</span><span class="th">เงินไม่พอหรือเกินเพดานยอด ไม่บันทึกธุรกรรม</span></td></tr><tr><td>413</td><td><span class="en">JSON body exceeds 8 KB.</span><span class="th">JSON body เกิน 8 KB</span></td></tr><tr><td>503</td><td><span class="en">Database unavailable; inspect health and logs.</span><span class="th">ฐานข้อมูลไม่พร้อม ตรวจ health และ log</span></td></tr><tr><td>404</td><td><span class="en">Unknown application route.</span><span class="th">ไม่พบ route ของแอป</span></td></tr></table></div><p><span class="en">GET wallet initializes an empty wallet if it does not exist. History returns up to 50 newest transactions and draws. Repeated POST creates another operation; there is no idempotency key.</span><span class="th">GET wallet สร้างกระเป๋าว่างหากยังไม่มี History คืนธุรกรรมและผลสุ่มล่าสุดอย่างละไม่เกิน 50 แถว การส่ง POST ซ้ำเป็นอีกธุรกรรมหนึ่ง ยังไม่มี idempotency key</span></p><p><span class="en">The demo has no login or account authorization. student_id is not proof of identity. Before real-user production, add authorization, abuse limits, reviewed migrations and tested backups.</span><span class="th">Demo ไม่มี login หรือสิทธิ์เข้าถึงบัญชี student_id ไม่ใช่หลักฐานยืนยันตัวตน ก่อนใช้กับผู้ใช้จริงต้องเพิ่มการตรวจสิทธิ์ จำกัดการใช้งานผิดวัตถุประสงค์ migration ที่ตรวจทาน และ backup ที่ทดสอบแล้ว</span></p></section></main><footer>Dr. Pisit Praiwattana, your mentor in 2026</footer><script>(()=>{let lang=new URLSearchParams(location.search).get('lang')||'en',size=125;const apply=()=>{document.documentElement.lang=lang;document.documentElement.style.fontSize=size+'%';document.getElementById('size').textContent=size+'%';for(const v of ['en','th'])document.getElementById(v).setAttribute('aria-pressed',String(v===lang));};for(const v of ['en','th'])document.getElementById(v).onclick=()=>{lang=v;apply();};document.getElementById('minus').onclick=()=>{size=Math.max(100,size-10);apply();};document.getElementById('plus').onclick=()=>{size=Math.min(200,size+10);apply();};const prefix=location.pathname.replace(/\/api-spec\/?$/,'');document.getElementById('openapi').href=prefix+'/openapi.json';document.getElementById('tester').href=prefix+'/test';apply();})();</script></body></html>

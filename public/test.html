@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gacha API laboratory</title>
+<style>
+:root{font-family:system-ui,sans-serif;color:#eaf2ed;background:#14282f;font-size:18px;line-height:1.6}*{box-sizing:border-box}body{max-width:1100px;margin:auto;padding:24px}header{display:flex;gap:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap}h1,h2{line-height:1.2;color:#ddf397}h1{font-size:2rem}h2{font-size:1.3rem}button,input{font:inherit;border-radius:7px;padding:.55rem .75rem;border:1px solid #9db5ac}button{cursor:pointer;background:#dcf092;color:#162c31;font-weight:650}button:disabled{opacity:.6;cursor:wait}button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:4px}input{width:100%;background:#eff5f1;color:#14282f}label{display:block}.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}.card{background:#203b43;border:1px solid #63817d;border-radius:12px;padding:20px;margin:20px 0}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}.help{color:#c4d6ce}.route{font-family:ui-monospace,monospace;overflow-wrap:anywhere}pre{background:#0b1c22;border:1px solid #63817d;border-radius:8px;padding:18px;max-height:430px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}a{color:#ddf397}.tag{padding:3px 9px;background:#284b46;border-radius:6px}footer{padding:25px 0;color:#c4d6ce}#status{min-height:1.6em}@media(max-width:500px){body{padding:14px}h1{font-size:1.6rem}}
+</style></head><body>
+<header><strong>ITCS258 · GACHA API</strong><div><button id="en" type="button" aria-pressed="true">EN</button> <button id="th" type="button" aria-pressed="false">ไทย</button> <button id="smaller" type="button" aria-label="Smaller text">A−</button> <button id="larger" type="button" aria-label="Larger text">A+</button></div></header>
+<h1 data-en="Gacha API laboratory" data-th="ห้องทดลอง Gacha API">Gacha API laboratory</h1>
+<p class="help" data-en="Virtual classroom currency only. No payment is collected. Use your own student ID and inspect each HTTP request and response." data-th="ใช้เงินจำลองในห้องเรียนเท่านั้น ไม่มีการชำระเงินจริง ใช้รหัสนักศึกษาของตนเอง แล้วตรวจคำขอและคำตอบ HTTP ทุกครั้ง">Virtual classroom currency only. No payment is collected. Use your own student ID and inspect each HTTP request and response.</p>
+<p><a id="api-spec-link" href="api-spec" data-en="API specification and OpenAPI download" data-th="เอกสาร API และดาวน์โหลด OpenAPI">API specification and OpenAPI download</a></p>
+<div class="card"><h2 data-en="1. Choose your experiment values" data-th="1. กำหนดค่าทดลองของคุณ">1. Choose your experiment values</h2>
+<div class="fields"><label><span data-en="Student ID" data-th="รหัสนักศึกษา">Student ID</span><input id="student" value="6688123" maxlength="30" autocomplete="off"></label><label><span data-en="Recharge coins" data-th="จำนวน coin ที่เติม">Recharge coins</span><input id="recharge" type="number" value="1000" min="1" max="100000" step="1"></label><label><span data-en="Coins to exchange" data-th="จำนวน coin ที่แลก">Coins to exchange</span><input id="exchange" type="number" value="1000" min="100" max="100000" step="100"></label></div>
+<p data-en="100 coins = 1 gem. One draw costs 10 gems. Each independent draw has 2% SSR probability; five SSR outcomes each have 0.4% overall probability. Fifty draws do not guarantee an SSR." data-th="100 coin = 1 gem สุ่มครั้งละ 10 gem แต่ละครั้งมีโอกาส SSR 2% โดย SSR ทั้งห้าตัวมีโอกาสรวมตัวละ 0.4% การสุ่ม 50 ครั้งไม่ได้รับประกันว่าจะได้ SSR">100 coins = 1 gem. One draw costs 10 gems. Each independent draw has 2% SSR probability; five SSR outcomes each have 0.4% overall probability. Fifty draws do not guarantee an SSR.</p></div>
+<div class="card"><h2 data-en="2. Send one request" data-th="2. ส่งคำขอทีละครั้ง">2. Send one request</h2>
+<div class="actions"><button type="button" data-action="health" data-en="GET · Health + DB" data-th="GET · Health + DB">GET · Health + DB</button><button type="button" data-action="catalog" data-en="GET · Rules and results" data-th="GET · กติกาและรางวัล">GET · Rules and results</button><button type="button" data-action="wallet" data-en="GET · Wallet" data-th="GET · กระเป๋าเงิน">GET · Wallet</button><button type="button" data-action="recharge" data-en="POST · Recharge" data-th="POST · เติม coin">POST · Recharge</button><button type="button" data-action="exchange" data-en="POST · Exchange" data-th="POST · แลก gem">POST · Exchange</button><button type="button" data-action="draw" data-en="POST · Draw once" data-th="POST · สุ่มหนึ่งครั้ง">POST · Draw once</button><button type="button" data-action="history" data-en="GET · Saved history" data-th="GET · ประวัติเดิม">GET · Saved history</button></div>
+<p class="help" data-en="Suggested order: Health → Wallet → Recharge 1000 → Exchange 1000 → Draw once → Saved history. During persistence checks, use Saved history only; do not draw again to replace the original result." data-th="ลำดับแนะนำ: Health → กระเป๋า → เติม 1000 → แลก 1000 → สุ่มครั้งเดียว → ประวัติเดิม ระหว่างทดสอบ persistence ให้เรียกประวัติเดิมเท่านั้น อย่าสุ่มใหม่แทนผลเดิม">Suggested order: Health → Wallet → Recharge 1000 → Exchange 1000 → Draw once → Saved history. During persistence checks, use Saved history only; do not draw again to replace the original result.</p>
+</div>
+<div class="card"><h2 data-en="3. Inspect the HTTP evidence" data-th="3. ตรวจหลักฐาน HTTP">3. Inspect the HTTP evidence</h2><p id="status" role="status" aria-live="polite"></p><div class="route" id="request-url">—</div><h3 data-en="Request body" data-th="ข้อมูลที่ส่ง">Request body</h3><pre id="request" tabindex="0">—</pre><h3 data-en="Response status and JSON" data-th="สถานะและ JSON ตอบกลับ">Response status and JSON</h3><pre id="response" tabindex="0">—</pre></div>
+<footer>Dr. Pisit Praiwattana, your mentor in 2026</footer>
+<script>
+(() => {
+  let language='en',size=18;
+  const $=id=>document.getElementById(id);
+  const prefix=location.pathname.replace(/\/test\/?$/,'').replace(/\/$/,'');
+  $('api-spec-link').href=prefix+'/api-spec';
+  function translate(lang){language=lang;document.documentElement.lang=lang;document.querySelectorAll('[data-en]').forEach(el=>el.textContent=el.dataset[lang]);$('en').setAttribute('aria-pressed',String(lang==='en'));$('th').setAttribute('aria-pressed',String(lang==='th'));}
+  $('en').onclick=()=>translate('en');$('th').onclick=()=>translate('th');
+  $('smaller').onclick=()=>{size=Math.max(16,size-2);document.documentElement.style.fontSize=size+'px';};
+  $('larger').onclick=()=>{size=Math.min(32,size+2);document.documentElement.style.fontSize=size+'px';};
+  async function send(action){
+    const student=$('student').value.trim();
+    if(!['health','catalog'].includes(action)&&!/^[A-Za-z0-9_-]{1,30}$/.test(student)){$('status').textContent=language==='th'?'กรุณาใส่รหัส 1–30 ตัวอักษร ตัวเลข _ หรือ -':'Enter a student ID of 1–30 letters, digits, _ or -.';return;}
+    const account='/api/accounts/'+encodeURIComponent(student);
+    const routes={health:'/health',catalog:'/api/catalog',wallet:account,history:account+'/history',recharge:'/api/recharge',exchange:'/api/exchange',draw:'/api/draw'};
+    const post=['recharge','exchange','draw'].includes(action),method=post?'POST':'GET';
+    const body=post?{student_id:student}:undefined;
+    if(action==='recharge'||action==='exchange')body.coins=Number($(action).value);
+    const url=prefix+routes[action];
+    $('request-url').textContent=method+' '+new URL(url,location.origin).href;
+    $('request').textContent=body?JSON.stringify(body,null,2):'(no body)';
+    $('status').textContent=language==='th'?'กำลังส่งคำขอ…':'Sending request…';
+    document.querySelectorAll('[data-action]').forEach(b=>b.disabled=true);
+    try{
+      const response=await fetch(url,{method,headers:{Accept:'application/json',...(post?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});
+      const raw=await response.text();let formatted=raw;try{formatted=JSON.stringify(JSON.parse(raw),null,2);}catch{}
+      $('status').textContent='HTTP '+response.status+' '+response.statusText;
+      $('response').textContent=formatted;
+    }catch(error){$('status').textContent=language==='th'?'ส่งคำขอไม่ได้ ตรวจ URL และสถานะบริการ':'Request failed. Check the URL and service status.';$('response').textContent=error.message;}
+    finally{document.querySelectorAll('[data-action]').forEach(b=>b.disabled=false);}
+  }
+  document.querySelectorAll('[data-action]').forEach(button=>button.onclick=()=>send(button.dataset.action));
+})();
+</script></body></html>
