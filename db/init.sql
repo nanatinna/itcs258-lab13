@@ -1,0 +1,24 @@
+CREATE TABLE IF NOT EXISTS wallets (
+  student_id VARCHAR(30) PRIMARY KEY,
+  coins INTEGER NOT NULL DEFAULT 0 CHECK (coins BETWEEN 0 AND 1000000),
+  gems INTEGER NOT NULL DEFAULT 0 CHECK (gems BETWEEN 0 AND 1000000),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS transactions (
+  id BIGSERIAL PRIMARY KEY,
+  student_id VARCHAR(30) NOT NULL REFERENCES wallets(student_id),
+  kind VARCHAR(20) NOT NULL CHECK (kind IN ('recharge', 'exchange', 'draw')),
+  coin_delta INTEGER NOT NULL,
+  gem_delta INTEGER NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS draws (
+  id BIGSERIAL PRIMARY KEY,
+  student_id VARCHAR(30) NOT NULL REFERENCES wallets(student_id),
+  result_id VARCHAR(50) NOT NULL,
+  result_name VARCHAR(80) NOT NULL,
+  rarity VARCHAR(10) NOT NULL CHECK (rarity IN ('SSR', 'COMMON')),
+  transaction_id BIGINT NOT NULL UNIQUE REFERENCES transactions(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
