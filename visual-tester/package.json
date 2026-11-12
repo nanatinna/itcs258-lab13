@@ -1,0 +1,9 @@
+{
+  "name": "gacha-visual-tester",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static p5.js tester for the ITCS258 gacha API. No dependencies.",
+  "scripts": {
+    "start": "node serve.js 5500"
+  }
+}

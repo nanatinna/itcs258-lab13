@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gacha visual tester · ITCS258 Lab 13</title>
+<meta name="description" content="Playable p5.js request-path diagram for the ITCS258 gacha API: local, proxy, Railway, Render or Vercel-hosted tester.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#controls" data-en="Skip to controls" data-th="ข้ามไปที่ปุ่มควบคุม">Skip to controls</a>
+<header>
+  <strong>ITCS258 · <span data-en="GACHA VISUAL TESTER" data-th="เครื่องทดสอบ GACHA แบบภาพ">GACHA VISUAL TESTER</span></strong>
+  <div class="tools">
+    <button id="lang-en" type="button" aria-pressed="true">EN</button>
+    <button id="lang-th" type="button" aria-pressed="false">ไทย</button>
+    <button id="motion" type="button" aria-pressed="false" data-en="Reduce motion" data-th="ลดภาพเคลื่อนไหว">Reduce motion</button>
+  </div>
+</header>
+
+<main>
+  <h1 data-en="Follow every request to your backend" data-th="ติดตามทุกคำขอไปยังแบ็กเอนด์ของคุณ">Follow every request to your backend</h1>
+  <p class="help" data-en="Virtual classroom currency only. Choose a backend, then click the diagram or the buttons. Each request travels page → entry → app → database and back with its real HTTP status and time." data-th="ใช้เงินจำลองในห้องเรียนเท่านั้น เลือกแบ็กเอนด์ แล้วคลิกแผนภาพหรือปุ่ม แต่ละคำขอวิ่งจากหน้าเว็บ → ทางเข้า → แอป → ฐานข้อมูล แล้วกลับมาพร้อมสถานะ HTTP และเวลาจริง">Virtual classroom currency only. Choose a backend, then click the diagram or the buttons. Each request travels page → entry → app → database and back with its real HTTP status and time.</p>
+
+  <section class="card" aria-labelledby="target-title">
+    <h2 id="target-title" data-en="1. Backend of choice" data-th="1. เลือกแบ็กเอนด์">1. Backend of choice</h2>
+    <div class="fields">
+      <label><span data-en="Preset" data-th="ค่าที่ตั้งไว้">Preset</span>
+        <select id="preset"></select></label>
+      <label class="wide"><span data-en="API base URL (no trailing /test)" data-th="URL หลักของ API (ไม่ต้องมี /test)">API base URL (no trailing /test)</span>
+        <input id="base" inputmode="url" autocomplete="off" spellcheck="false" placeholder="http://localhost:8085"></label>
+    </div>
+    <div class="actions">
+      <button id="connect" type="button" class="primary" data-en="Connect · GET /health + /api/catalog" data-th="เชื่อมต่อ · GET /health + /api/catalog">Connect · GET /health + /api/catalog</button>
+      <button id="share" type="button" data-en="Copy share link" data-th="คัดลอกลิงก์แชร์">Copy share link</button>
+    </div>
+    <p id="origin-note" class="note"></p>
+  </section>
+
+  <section class="card" id="controls" aria-labelledby="play-title" tabindex="-1">
+    <h2 id="play-title" data-en="2. Play the diagram" data-th="2. เล่นกับแผนภาพ">2. Play the diagram</h2>
+    <div class="fields">
+      <label><span data-en="Student ID" data-th="รหัสนักศึกษา">Student ID</span><input id="student" value="6688123" maxlength="30" autocomplete="off"></label>
+      <label><span data-en="Recharge coins" data-th="coin ที่เติม">Recharge coins</span><input id="recharge" type="number" value="1000" min="1" max="100000" step="1"></label>
+      <label><span data-en="Coins to exchange (×100)" data-th="coin ที่แลก (ทีละ 100)">Coins to exchange (×100)</span><input id="exchange" type="number" value="1000" min="100" max="100000" step="100"></label>
+    </div>
+    <div class="actions" role="group" aria-label="API actions">
+      <button type="button" data-action="health">GET · Health</button>
+      <button type="button" data-action="wallet" data-en="GET · Wallet" data-th="GET · กระเป๋า">GET · Wallet</button>
+      <button type="button" data-action="recharge" data-en="POST · Recharge" data-th="POST · เติม coin">POST · Recharge</button>
+      <button type="button" data-action="exchange" data-en="POST · Exchange" data-th="POST · แลก gem">POST · Exchange</button>
+      <button type="button" data-action="draw" data-en="POST · Draw once" data-th="POST · สุ่มหนึ่งครั้ง">POST · Draw once</button>
+      <button type="button" data-action="history" data-en="GET · Saved history" data-th="GET · ประวัติที่บันทึก">GET · Saved history</button>
+    </div>
+    <div id="stage" class="stage">
+      <p id="p5-missing" class="note" hidden data-en="The diagram needs p5.js from cdn.jsdelivr.net. The buttons and log still work without it." data-th="แผนภาพต้องโหลด p5.js จาก cdn.jsdelivr.net ปุ่มและบันทึกยังใช้งานได้แม้ไม่มีแผนภาพ">The diagram needs p5.js from cdn.jsdelivr.net. The buttons and log still work without it.</p>
+    </div>
+    <p class="help" data-en="Canvas shortcuts: click App = health, Database = history, Wallet = wallet, Coins = recharge, Arrow = exchange, Machine = draw. Every action also has a button above." data-th="ทางลัดบนภาพ: คลิก App = health, Database = ประวัติ, กระเป๋า = wallet, Coins = เติม, ลูกศร = แลก, ตู้กาชา = สุ่ม ทุกคำสั่งมีปุ่มด้านบนด้วย">Canvas shortcuts: click App = health, Database = history, Wallet = wallet, Coins = recharge, Arrow = exchange, Machine = draw. Every action also has a button above.</p>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="card" aria-labelledby="log-title">
+    <h2 id="log-title" data-en="3. HTTP evidence" data-th="3. หลักฐาน HTTP">3. HTTP evidence</h2>
+    <ol id="log" class="log" aria-label="Request log"></ol>
+    <h3 data-en="Last response" data-th="คำตอบล่าสุด">Last response</h3>
+    <pre id="response" tabindex="0">—</pre>
+  </section>
+</main>
+<footer>Dr. Pisit Praiwattana, your mentor in 2026 · <span data-en="No payment, no real prizes." data-th="ไม่มีการชำระเงินหรือรางวัลจริง">No payment, no real prizes.</span></footer>
+
+<script src="config.js"></script>
+<script src="tester.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/p5@2.3.4/lib/p5.min.js" integrity="sha384-Cs48F1uukMPysq29xNsf/FZL5ZNGsPfi6lDSGOxo6dypVFFiWO9Q3YbRKoXPPBii" crossorigin="anonymous" onerror="document.getElementById('p5-missing').hidden=false"></script>
+<script src="sketch.js"></script>
+</body>
+</html>
